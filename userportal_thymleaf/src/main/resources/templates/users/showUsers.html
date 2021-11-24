@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head th:replace= "fragments/head_fragment :: page_head('User Portal - Home Page')" />
+<body>
+<div class="container-fluid">
+	<div th:replace="fragments/navigation_fragment :: menu"/>
+	
+	<div>
+		<h2>Manage Users</h2>	
+		<a th:href="@{/users/addNew}" class="fas fa-user-plus fa-2x icon-dark mr-2"></a>
+		
+		<a th:href="@{/users/export/csv}" class="fas fa-file-csv fa-2x icon-dark mr-2"></a>
+		
+		<a th:href="@{/users/export/pdf}" class="fas fa-file-pdf fa-2x icon-dark"></a>		
+	</div>
+	<div>
+		<div th:if="${message != null}" class="alert alert-success text-center">
+			[[${message}]]
+		</div>	
+		<div th:if="${error_message != null}" class="alert alert-danger text-center">
+			[[${error_message}]]
+		</div>		
+	</div>
+	<table class = "table table-bordered table-striped table-hover table-responsive-xl">
+		<thead class = "thead-dark">
+			<tr>
+				<th class = "hideable-column">
+					<th th:replace = "fragments/fragment :: column_link('id', 'User ID', 'tag')"/>
+				</th>
+				<th>Profile Photo</th>
+				<th class="hideable-column">
+						<th th:replace="fragments/fragment :: column_link('email', 'E-mail', 'tag')" />
+				</th>
+				<th th:replace="fragments/fragment :: column_link('username', 'User Name', 'none')" />
+				<th th:replace="fragments/fragment :: column_link('firstName', 'First Name', 'none')" />
+				<th th:replace="fragments/fragment :: column_link('lastName', 'Last Name', 'none')" />
+				
+				<th>Role</th>
+				<th th:replace="fragments/fragment :: column_link('active', 'Enabled', 'none')" />
+				<th>Actions</th>
+				
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="user : ${listUsers}">
+				<td class="hideable-column">[[${user.id}]]</td>
+				<td>
+						<div th:replace="fragments/fragment :: user_photos" />
+				</td>
+				<td class="hideable-column">[[${user.email}]]</td>
+				<td>[[${user.username}]]</td>
+				
+				<td>[[${user.firstName}]]</td>
+				<td>[[${user.lastName}]]</td>
+				<td>[[${user.role}]]</td>
+				
+				<td>
+					<div th:replace="fragments/fragment :: status(${user.active}, 'user', '/users/' + ${user.id} )" />
+				</td>
+				<td>
+					<div th:replace="fragments/fragment :: edit('user', '/logUser/edit/' + ${user.id})" />
+					&nbsp;&nbsp;
+					<div th:replace="fragments/fragment :: delete('user', ${user.id}, '/users/delete/' + ${user.id}, true)" />
+				</td>
+			</tr>
+		
+		</tbody>
+	</table>
+	
+	
+	<div th:replace="fragments/fragment :: pagination('/users', 'users')"></div>
+	<div th:replace = "fragments/modal_fragment :: confirm_modal"/>
+</div>
+	<script type="text/javascript">
+		moduleURL = "[[@{/users}]]";
+		
+		$(document).ready(function() {
+			$(".link-delete").on("click", function(e) {
+				e.preventDefault();
+				showDeleteConfirmModal($(this), 'user');
+			});
+		});
+	</script>
+	<script type="text/javascript" th:src="@{/js/users.js}"></script>
+</body>
+</html>

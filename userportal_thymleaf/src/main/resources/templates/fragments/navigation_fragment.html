@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:fragment="menu">
+	
+		<form th:action="@{/logout}" method="post" th:hidden = "true" name = "logoutForm">
+			<input type = "submit" />
+		</form>
+		
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+	  		<a class="fas fa-user-friends fa-3x" th:href="@{/}"></a>
+	  
+	  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	    <span class="navbar-toggler-icon"></span>
+	  </button>
+	
+	  <div class="collapse navbar-collapse m-2" id="navbarSupportedContent">
+	    <ul class="navbar-nav mr-auto">
+	      <th:block sec:authorize="hasAnyAuthority('admin', 'manager')">
+	      	<li class="nav-item dropdown">
+		      	<a class="nav-link dropdown-toggle" data-toggle="dropdown-menu"
+		      		th:href="@{/}">
+		      		Users
+		      	</a>
+		      	<div class="dropdown-menu">
+		      		<a class="dropdown-item" th:href="@{/users/addNew}">Add New</a>
+		      		<a class="dropdown-item" th:href="@{/users}">View All</a>
+		      	</div>
+		    </li>
+	      </th:block>
+	      
+	    </ul>
+	    <div class = "nav-item dropdown d-flex justify-content-end mr-3">
+	      	<a class="nav-link dropdown-toggle" data-toggle="dropdown"
+						href="" 
+						sec:authentication="principal.username"></a>
+	      	<div class="dropdown-menu">
+	      		<a class="dropdown-item" id="logoutLink" href="">Logout</a>
+	      	</div>
+ 		 </div>
+      
+	  </div>
+	</nav>
+	
+	
+	
+	
+	</div>
+</body>
+</html>

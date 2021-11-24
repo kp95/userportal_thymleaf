@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head th:replace= "fragments/head_fragment :: page_head('User Portal - Home Page')" />
+<body>
+<div class="container-fluid">
+	<div th:replace="fragments/navigation_fragment :: menu"/>
+	
+	<div>
+		<h2>Manage Users | [[${pageTitle}]]</h2>
+	</div>
+	<form th:action="@{/users/save}" method="post" style="max-width: 700px; margin: 0 auto"
+		enctype="multipart/form-data"
+		th:object="${user}" onsubmit="return checkUniqueEmail(this);"
+		>
+		<input type="hidden" th:field="*{id}" />
+		<div class="border border-secondary rounded p-3">
+			<div class="form-group row">
+				<label class="col-sm-4 col-form-label">Email:</label>
+				<div class="col-sm-8">
+					<input  type="email" class="form-control" th:field="*{email}" required="required" />
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="col-sm-4 col-form-label">First Name:</label>
+				<div class="col-sm-8">
+					<input type="text" class="form-control" th:field="*{firstName}" required="required" />
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="col-sm-4 col-form-label">Last Name:</label>
+				<div class="col-sm-8">
+					<input type="text" class="form-control" th:field="*{lastName}" required="required" />
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="col-sm-4 col-form-label">Password:</label>
+				<div class="col-sm-8">
+					<input th:if="${user.id == null}" type="password" class="form-control" 
+					th:field="*{password}" required minlength="6" maxlength="20"  />
+				
+				<input th:if="${user.id != null}" type="password" class="form-control" 
+					th:field="*{password}" minlength="6" maxlength="20" placeholder="Leave blank, if no change is required"/>
+				</div>
+			</div>
+			
+			<div th:if = "${user.id == null || (loggedRole == 'admin' || loggedRole == 'manager')}" class="form-group row">
+				<label class="col-sm-4 col-from-label">Role</label>
+				<div class="col-sm-8">
+					<select class="form-select" th:field="*{role}" aria-label="Select Role">
+						  <option selected value="user">User</option>
+						  <option value="admin">Admin</option>
+						  <option value="manager">Manager</option>
+					</select>
+				</div>
+			</div>
+			
+			
+			<div th:if = "${loggedRole == 'user'}" class="form-group row">
+				<label class="col-sm-4 col-form-label">Role:</label>
+				<div class="col-sm-8">
+					<span class="col-sm-4 badge-pill badge-secondary">[[${user.role}]]</span>
+				</div>
+			</div>
+			
+			<div class="form-group row">
+				<label class="col-sm-4 col-form-label">Enabled:</label>
+				<div class="col-sm-8">
+					<input th:if = "${user.id == null || (loggedRole == 'admin' || loggedRole == 'manager')}" type="checkbox" th:field="*{active}" />
+					<input th:if = "${ loggedRole == 'user' }" type="checkbox" th:field="*{active}" disabled="disabled" />
+				</div>
+			</div>
+			<div class="form-group row">
+				<input type="hidden" th:field="*{profileImage}">
+				<label class="col-sm-4 col-form-label">Profile Image</label>
+				<div class="col-sm-8">
+					<input type="file" id="fileImage" 
+					name = "image" accept="image/png, image/jpeg"
+					class="mb-2"/>
+					<img id = "thumbnail" alt="Photo Preview" 
+					th:src="@{${user.profileImagePath}}" class="image-fluid"/>
+				</div>
+			</div>
+			
+			
+			
+			
+			
+			<div class="text-center">
+				<input type="submit" value="Save" class="btn btn-primary m-3" />
+				<input type="button" value="Cancel" class="btn btn-secondary" id="buttonCancel" />
+			</div>
+			
+		</div>	
+	
+		
+	
+	</form>
+		
+	<div th:replace = "fragments/modal_fragment :: modal_dialog"/>
+</div>
+	<script type="text/javascript">
+		moduleURL = "[[@{/users}]]";
+		controllerURL = "[[@{/checkUserEamil}]]"
+	</script>
+	
+	<script th:src="@{/js/user_form.js}"></script>
+
+</body>
+</html>
