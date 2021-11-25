@@ -13,14 +13,24 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.userportal.main.LoginSuccessHandler;
-import com.userportal.main.UserLoginService;
+import com.userportal.login.LoginSuccessHandler;
+import com.userportal.login.UserLoginService;
+import com.userportal.login.oauth2.LoginOAuth2UserService;
+import com.userportal.login.oauth2.OAuth2LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 
+	@Autowired
+	private LoginOAuth2UserService loginOAuth2UserService;
+	
+	@Autowired
+	private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+	
+	
+	
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -57,7 +67,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 		// TODO Auto-generated method stub
 		http.authorizeRequests()
 			//.antMatchers("/users/page/**").hasAnyAuthority("user")
-			.antMatchers("/users/**").hasAnyAuthority("admin","hr")
+			.antMatchers("/users/**").hasAnyAuthority("admin","hr","user")
 			.antMatchers("/logUser/**").hasAnyAuthority("admin","hr","user")
 			.anyRequest().authenticated()
 			.and()
@@ -67,10 +77,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 				.successHandler(loginSuccessHandler())
 				.permitAll()
 			.and()
+				.oauth2Login()
+					.loginPage("/login")
+					.userInfoEndpoint()
+					.userService(loginOAuth2UserService)
+					.and()
+						.successHandler(oAuth2LoginSuccessHandler)
+			.and()
 				.logout().permitAll()
 			.and()
 				.rememberMe()
-				.key("AbcDefgHijKlmnOpqrs_1234567890")
+				.key("1234567890_aBcDeFgHiJkLmNoPqRsTuVwXyZ")
+				.userDetailsService(loginService)
 				.tokenValiditySeconds(7 * 24 * 60 * 60);
 	}
 	

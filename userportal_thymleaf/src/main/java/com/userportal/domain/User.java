@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -51,6 +53,10 @@ public class User {
     
     private boolean active;
   
+    @Enumerated(EnumType.STRING)
+	@Column(name = "authentication_type",length = 10)
+	private AuthenticationType authenticationType;
+    
     @OneToMany
 	private Set<User> manages = new HashSet<User>();
     
@@ -99,7 +105,7 @@ public class User {
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-
+	
 	public String getUsername() {
 		return username;
 	}
@@ -194,6 +200,16 @@ public class User {
 
 	public void setUser(Set<User> user) {
 		this.manages = user;
+	}
+
+
+	public AuthenticationType getAuthenticationType() {
+		return authenticationType;
+	}
+
+
+	public void setAuthenticationType(AuthenticationType authenticationType) {
+		this.authenticationType = authenticationType;
 	}
 
 

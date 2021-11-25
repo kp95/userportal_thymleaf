@@ -1,4 +1,4 @@
-package com.userportal.main;
+package com.userportal.login;
 
 import java.io.IOException;
 import java.util.Collection;

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.userportal.domain.AuthenticationType;
 import com.userportal.domain.User;
 import com.userportal.repository.UserRepository;
 
@@ -34,6 +35,7 @@ public class UserServiceImpl {
 	public User register(User user) {
 		
 		if(user.getId() == null) {
+			user.setAuthenticationType(AuthenticationType.DATABASE);
 			user.setUsername((user.getFirstName()+"_"+user.getLastName()).toString());
 			String password = passwordEncoder.encode(user.getPassword());
 			user.setPassword(password);
@@ -42,6 +44,7 @@ public class UserServiceImpl {
 		}
 		else {
 			User existingUser = repo.findById(user.getId()).get();
+			user.setAuthenticationType(existingUser.getAuthenticationType());
 			if(!user.getPassword().isEmpty()) {
 				String password = passwordEncoder.encode(user.getPassword());
 				user.setPassword(password);
@@ -132,4 +135,23 @@ public class UserServiceImpl {
 	public List<User> findAllAdmin(){
 		return repo.findAllAdmin();
 	}
+	
+	public User addOAuthUser(String name,String email) {
+		User user = new User();
+		user.setEmail(email);
+		user.setFirstName(name);
+		user.setLastName("");
+		user.setActive(true);
+		user.setRole("user");
+		user.setUsername(name);
+		user.setAuthenticationType(AuthenticationType.GOOGLE);
+		
+		return repo.save(user);
+	}
+	public void updateAuthenticatioType(User user, AuthenticationType type) {
+		if(!user.getAuthenticationType().equals(type)) {
+			repo.updateAuthenticationType(user.getId(), type);
+		}
+	}
+	
 }

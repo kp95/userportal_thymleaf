@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
+import com.userportal.domain.AuthenticationType;
 import com.userportal.domain.User;
 
 public interface UserRepository extends PagingAndSortingRepository<User, Long>{
@@ -31,4 +32,8 @@ public interface UserRepository extends PagingAndSortingRepository<User, Long>{
 	
 	@Query("SELECT u FROM User u WHERE u.role = 'admin'")
 	public List<User> findAllAdmin();
+	
+	@Query("UPDATE User u SET u.authenticationType = ?2 WHERE u.id = ?1")
+	@Modifying
+	public void updateAuthenticationType(Long userId, AuthenticationType type);
 }
