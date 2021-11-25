@@ -16,18 +16,22 @@
 	
 	  <div class="collapse navbar-collapse m-2" id="navbarSupportedContent">
 	    <ul class="navbar-nav mr-auto">
-	      <th:block sec:authorize="hasAnyAuthority('admin', 'manager')">
+	      
 	      	<li class="nav-item dropdown">
 		      	<a class="nav-link dropdown-toggle" data-toggle="dropdown-menu"
 		      		th:href="@{/}">
 		      		Users
 		      	</a>
 		      	<div class="dropdown-menu">
-		      		<a class="dropdown-item" th:href="@{/users/addNew}">Add New</a>
+		      		<th:block sec:authorize="hasAnyAuthority('admin', 'manager')">
+		      			<a class="dropdown-item" th:href="@{/users/addNew}">Add New</a>
+		      		</th:block>
+		      		<th:block>
+		      			<a class="dropdown-item" th:href="@{'/logUser/edit/' + ${loggedInUserId}}">Edit Profile</a>
+		      		</th:block>	
 		      		<a class="dropdown-item" th:href="@{/users}">View All</a>
 		      	</div>
 		    </li>
-	      </th:block>
 	      
 	    </ul>
 	    <div class = "nav-item dropdown d-flex justify-content-end mr-3">

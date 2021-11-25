@@ -10,11 +10,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.userportal.domain.AuthenticationType;
 import com.userportal.domain.User;
+import com.userportal.domain.UserPrincipal;
+import com.userportal.login.oauth2.LoginOAuth2User;
 import com.userportal.repository.UserRepository;
 
 @Service
@@ -34,16 +37,38 @@ public class UserServiceImpl {
 	
 	public User register(User user) {
 		
+		User loggedUser = null;
+		User parentUser = null;
+		if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserPrincipal) {
+			UserPrincipal temp = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			parentUser = repo.findById(temp.getId()).get();
+			loggedUser = parentUser;
+		}
+		else {
+			List<User> allAdmins = repo.findAllManager();
+			parentUser = allAdmins.get(0);
+			//logged user
+			LoginOAuth2User temp = (LoginOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			loggedUser = repo.findUserByEmail(temp.getEmail());
+			
+		}
 		if(user.getId() == null) {
 			user.setAuthenticationType(AuthenticationType.DATABASE);
 			user.setUsername((user.getFirstName()+"_"+user.getLastName()).toString());
 			String password = passwordEncoder.encode(user.getPassword());
 			user.setPassword(password);
-			
+			if(user.getManageBy() == null) {
+				user.setManageBy(parentUser);
+			}
 			return repo.save(user);
 		}
 		else {
 			User existingUser = repo.findById(user.getId()).get();
+			
+			if(loggedUser.getRole().equals("user")) {
+				user.setActive(existingUser.isActive());
+				user.setRole(existingUser.getRole());
+			}
 			user.setAuthenticationType(existingUser.getAuthenticationType());
 			if(!user.getPassword().isEmpty()) {
 				String password = passwordEncoder.encode(user.getPassword());
@@ -52,7 +77,9 @@ public class UserServiceImpl {
 			else {
 				user.setPassword(existingUser.getPassword());
 			}
-			
+			if(user.getManageBy() == null) {
+				user.setManageBy(existingUser.getManageBy());
+			}
 			user.setUsername(existingUser.getUsername());
 			user.setJoinDate(existingUser.getJoinDate());
 			user.setLastLoginDate(existingUser.getLastLoginDate());
@@ -74,15 +101,53 @@ public class UserServiceImpl {
 		Sort sort = Sort.by(sortField);
 		sort = sortDir.equals("asc") ? sort.ascending():sort.descending();
 		Pageable pageable = PageRequest.of(pageNum - 1,USERS_PER_PAGE ,sort);
-		if(keyword != null) {
-			//for searching we use keyword
-			return repo.findAll(keyword,pageable);
+		
+		User loggedUser = null;
+		
+		if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserPrincipal) {
+			UserPrincipal temp = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			
+			SecurityContextHolder.getContext().setAuthentication(null);
+			loggedUser = repo.findById(temp.getId()).get();
 		}
-		return repo.findAll(pageable);
+		else if (SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof LoginOAuth2User) {
+			//return repo.findAllByRole("user", pageable);
+			LoginOAuth2User temp = (LoginOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			loggedUser = repo.findUserByEmail(temp.getEmail());
+		}
+		
+		
+		if(loggedUser.getRole().equals("user")) {
+			if(keyword != null) {
+				//for searching we use keyword
+				return repo.findAllByRole(keyword,"user",pageable);
+			}
+			return repo.findAllByRole("user", pageable);
+		}
+		else if(loggedUser.getRole().equals("manager")) {
+			User parentUser = repo.findById(loggedUser.getId()).get();
+			if(keyword != null) {
+				//for searching we use keyword
+				return repo.findAllByManager(keyword, parentUser, pageable);
+			}
+			return repo.findAllByManager(parentUser, pageable);
+		}
+		else {
+			if(keyword != null) {
+				//for searching we use keyword
+				return repo.findAll(keyword,pageable);
+			}
+			return repo.findAll(pageable);
+		}
+		
 	}
 	public List<User> listAll(){
 		return (List<User>) repo.findAll();
 	}
+	public List<User> listAll(User manager){
+		return (List<User>) repo.findAll(manager);
+	}
+	
 	public void delete(Long id) {
 		repo.deleteById(id);
 	}
@@ -137,6 +202,9 @@ public class UserServiceImpl {
 	}
 	
 	public User addOAuthUser(String name,String email) {
+		
+		List<User> allAdmins = repo.findAllAdmin();
+		
 		User user = new User();
 		user.setEmail(email);
 		user.setFirstName(name);
@@ -145,6 +213,7 @@ public class UserServiceImpl {
 		user.setRole("user");
 		user.setUsername(name);
 		user.setAuthenticationType(AuthenticationType.GOOGLE);
+		user.setManageBy(allAdmins.get(0));
 		
 		return repo.save(user);
 	}
@@ -152,6 +221,9 @@ public class UserServiceImpl {
 		if(!user.getAuthenticationType().equals(type)) {
 			repo.updateAuthenticationType(user.getId(), type);
 		}
+	}
+	public List<User> findByAdminManager() {
+		return repo.findByAdminManager();
 	}
 	
 }

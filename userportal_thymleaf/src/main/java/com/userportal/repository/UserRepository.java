@@ -23,6 +23,21 @@ public interface UserRepository extends PagingAndSortingRepository<User, Long>{
 			+ " u.lastName) LIKE %?1%")
 	public Page<User> findAll(String keyword, Pageable pageable);
 	
+	@Query("SELECT u FROM User u WHERE CONCAT(u.id, ' ', u.email, ' ', u.firstName, ' ',"
+			+ " u.lastName) LIKE %?1% AND u.role = ?2")
+	public Page<User> findAllByRole(String keyword,String role, Pageable pageable);
+	
+	@Query("SELECT u FROM User u WHERE u.role = ?1")
+	public Page<User> findAllByRole(String role, Pageable pageable);
+	
+	 @Query(value ="SELECT u FROM User u WHERE u.manageBy = ?1",nativeQuery = false) 
+	 public Page<User> findAllByManager(User parentUser, Pageable
+	  pageable);
+ 
+	@Query("SELECT u FROM User u WHERE CONCAT(u.id, ' ', u.email, ' ', u.firstName, ' ',"
+				+ " u.lastName) LIKE %?1% AND u.manageBy = ?2")
+	public Page<User> findAllByManager(String keyword,User parentUser, Pageable pageable);
+		
 	@Modifying
 	@Query("UPDATE User u SET u.active = ?2 WHERE u.id = ?1")
 	public void updateStatus(Long id, boolean status);
@@ -30,10 +45,21 @@ public interface UserRepository extends PagingAndSortingRepository<User, Long>{
 	@Query("SELECT u FROM User u WHERE u.role = 'manager'")
 	public List<User> findAllManager();
 	
-	@Query("SELECT u FROM User u WHERE u.role = 'admin'")
+	@Query("SELECT u FROM User u WHERE u.manageBy = ?1")
+	public List<User> findAll(User manager);
+	
+	
+	@Query("SELECT u FROM User u WHERE u.role = 'admin' ORDER BY u.id ASC")
 	public List<User> findAllAdmin();
 	
 	@Query("UPDATE User u SET u.authenticationType = ?2 WHERE u.id = ?1")
 	@Modifying
 	public void updateAuthenticationType(Long userId, AuthenticationType type);
+	
+	@Query("SELECT u FROM User u WHERE u.role = ?1")
+	public List<User> findByRole(String role);
+	
+	@Query("SELECT u FROM User u WHERE u.role <> 'user'")
+	public List<User> findByAdminManager();
+	
 }

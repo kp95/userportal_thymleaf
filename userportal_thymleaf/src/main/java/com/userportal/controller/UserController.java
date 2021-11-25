@@ -23,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.lowagie.text.DocumentException;
 import com.userportal.domain.User;
 import com.userportal.domain.UserPrincipal;
+import com.userportal.login.oauth2.LoginOAuth2User;
 import com.userportal.service.UserServiceImpl;
 import com.userportal.util.CsvExport;
 import com.userportal.util.FileUploadUtil;
@@ -38,7 +39,7 @@ public class UserController {
 	private UserServiceImpl service;
 	
 	
-	@GetMapping("/users")
+	@GetMapping({"/users","/"})
 	public String loadFirstPage() {
 		return defaultRedirectURL;
 	}
@@ -48,6 +49,19 @@ public class UserController {
 	public String findAll(@PathVariable(name = "pageNum") int pageNum, Model model,
 			@RequestParam("sortField") String sortField, @RequestParam("sortDir") String sortDir,
 			@RequestParam(name = "keyword",required = false) String keyword) {
+		
+		//fecth logged in user
+		Long loggedInUserId = null;
+		if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserPrincipal) {
+			UserPrincipal loggedInUser = (UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			loggedInUserId = loggedInUser.getId();
+		}
+		else if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof LoginOAuth2User)
+		{
+			LoginOAuth2User loggedInUser = (LoginOAuth2User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			User temp = service.findByEmail(loggedInUser.getEmail());
+			loggedInUserId = temp.getId();
+		}
 		
 		Page<User> page = service.findAllUser(pageNum, sortField, sortDir, keyword);
 		List<User> listUsers = page.getContent();
@@ -60,6 +74,7 @@ public class UserController {
 		
 		String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
 		
+		model.addAttribute("loggedInUserId",loggedInUserId);
 		model.addAttribute("currentPage", pageNum);
 		model.addAttribute("totalPages", page.getTotalPages());
 		model.addAttribute("startCount", startCount);
@@ -78,7 +93,8 @@ public class UserController {
 	public String addNew(Model model) {
 		model.addAttribute("pageTitle","Create New User");
 		model.addAttribute("user",new User());
-		model.addAttribute("managers",service.findAllManager());
+		List<User> managers = service.findByAdminManager();
+		model.addAttribute("listManagers",managers);
 		return "/users/addNew";
 	}
 	
@@ -142,7 +158,8 @@ public class UserController {
 		if(loggedInUser instanceof UserPrincipal) {
 			loggedRole = ((UserPrincipal) loggedInUser).getR();
 		}
-		
+		List<User> managers = service.findByAdminManager();
+		model.addAttribute("listManagers",managers);
 		model.addAttribute("pageTitle","Edit User Id :" + id);
 		model.addAttribute("user",service.findById(id));
 		model.addAttribute("loggedRole",loggedRole);
@@ -152,14 +169,30 @@ public class UserController {
 	@GetMapping("/users/export/csv")
 	public void exportToCSV(HttpServletResponse response) {
 		
-		LOGGER.debug(response.toString());
-		List<User> users = service.listAll();
+		UserPrincipal loggedUser = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		List<User> users = null;
+		if(loggedUser.getR().equals("admin")) {
+			users = service.listAll();
+		}
+		else {
+			User parentUser = service.findById(loggedUser.getId());
+			users = service.listAll(parentUser);
+		}
+		
 		CsvExport exporter = new CsvExport();
 		exporter.export(users, response);
 	}
 	@GetMapping("/users/export/pdf")
 	public void exportToPDF(HttpServletResponse response) throws DocumentException, IOException {
-		List<User> users = service.listAll();
+		UserPrincipal loggedUser = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		List<User> users = null;
+		if(loggedUser.getR().equals("admin")) {
+			users = service.listAll();
+		}
+		else {
+			User parentUser = service.findById(loggedUser.getId());
+			users = service.listAll(parentUser);
+		}
 		PdfExport exporter = new PdfExport();
 		exporter.export(users, response);
 		LOGGER.debug(response.toString());

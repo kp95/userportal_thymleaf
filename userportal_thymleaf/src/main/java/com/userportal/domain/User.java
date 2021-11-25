@@ -57,8 +57,8 @@ public class User {
 	@Column(name = "authentication_type",length = 10)
 	private AuthenticationType authenticationType;
     
-    @OneToMany
-	private Set<User> manages = new HashSet<User>();
+    @OneToOne
+	private User manageBy;
     
     
     public User() {
@@ -67,7 +67,7 @@ public class User {
 
 
 	public User(String firstName, String lastName, String username, String password, String email, String profileImage,
-			Date lastLoginDate, String role, boolean active, Set<User> user) {
+			Date lastLoginDate, String role, boolean active, User user) {
 		super();
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -78,7 +78,7 @@ public class User {
 		this.lastLoginDate = lastLoginDate;
 		this.role = role;
 		this.active = active;
-		this.manages = user;
+		this.manageBy = user;
 	}
 
 
@@ -191,15 +191,15 @@ public class User {
 	}
 
 
-	
 
-	public Set<User> getUser() {
-		return manages;
+
+	public User getManageBy() {
+		return manageBy;
 	}
 
 
-	public void setUser(Set<User> user) {
-		this.manages = user;
+	public void setManageBy(User manageBy) {
+		this.manageBy = manageBy;
 	}
 
 
@@ -219,7 +219,7 @@ public class User {
 				+ ", password=" + password + ", email=" + email + ", profileImage=" + profileImage + ", lastLoginDate="
 				+ lastLoginDate + ", lastLoginDateDisplay=" + lastLoginDateDisplay + ", joinDate=" + joinDate
 				+ ", role=" + role + ", authorities=" + Arrays.toString(authorities) + ", active=" + active + ", user="
-				+ manages + "]";
+				+ manageBy + "]";
 	}
 
 	@Transient

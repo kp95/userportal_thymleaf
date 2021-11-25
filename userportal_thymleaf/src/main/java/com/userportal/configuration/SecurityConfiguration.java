@@ -67,8 +67,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 		// TODO Auto-generated method stub
 		http.authorizeRequests()
 			//.antMatchers("/users/page/**").hasAnyAuthority("user")
-			.antMatchers("/users/**").hasAnyAuthority("admin","hr","user")
-			.antMatchers("/logUser/**").hasAnyAuthority("admin","hr","user")
+			.antMatchers("/users/**").hasAnyAuthority("admin","manager","user")
+			.antMatchers("/logUser/**").hasAnyAuthority("admin","manager","user")
 			.anyRequest().authenticated()
 			.and()
 			.formLogin()

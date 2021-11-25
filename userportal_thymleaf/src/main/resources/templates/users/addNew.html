@@ -63,6 +63,28 @@
 				</div>
 			</div>
 			
+			<th:block sec:authorize="hasAnyAuthority('admin')">
+				<div class="form-group row">
+					<label class="col-sm-4 col-form-label">Managed By:</label>
+					<div class="col-sm-8">
+						<select class="form-select" th:field="*{manageBy}">
+							<th:block th:each="manager : ${listManagers}">
+								<option th:value="${manager.id}">[[${manager.username}]] - [[${manager.role}]]</option>
+							</th:block>
+						</select>
+					</div>
+				</div>
+			</th:block>
+			<th:block  th:if="${user.id != null}">
+				<th:block sec:authorize="hasAnyAuthority('user','manager')">
+					<div class="form-group row">
+						<label class="col-sm-4 col-form-label">Managed By:</label>
+						<div class="col-sm-8">
+							<span class="col-sm-4 badge-pill badge-secondary">[[${user.manageBy.username}]]</span>
+						</div>
+					</div>
+				</th:block>
+			</th:block>
 			<div class="form-group row">
 				<label class="col-sm-4 col-form-label">Enabled:</label>
 				<div class="col-sm-8">
@@ -81,10 +103,6 @@
 					th:src="@{${user.profileImagePath}}" class="image-fluid"/>
 				</div>
 			</div>
-			
-			
-			
-			
 			
 			<div class="text-center">
 				<input type="submit" value="Save" class="btn btn-primary m-3" />
