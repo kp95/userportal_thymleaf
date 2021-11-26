@@ -25,6 +25,7 @@ import com.userportal.domain.User;
 import com.userportal.domain.UserPrincipal;
 import com.userportal.login.oauth2.LoginOAuth2User;
 import com.userportal.service.UserServiceImpl;
+import com.userportal.util.AmazonS3Util;
 import com.userportal.util.CsvExport;
 import com.userportal.util.FileUploadUtil;
 import com.userportal.util.PdfExport;
@@ -95,7 +96,7 @@ public class UserController {
 		model.addAttribute("user",new User());
 		List<User> managers = service.findByAdminManager();
 		model.addAttribute("listManagers",managers);
-		return "/users/addNew";
+		return "users/addNew";
 	}
 	
 	@PostMapping("/users/save")
@@ -110,7 +111,9 @@ public class UserController {
 			String uploadDir = "profile-image/" + registerUser.getId();
 			 
 			try {
-				FileUploadUtil.saveImage(uploadDir, fileName, multipartFile);
+				AmazonS3Util.removeFolder(uploadDir);
+				AmazonS3Util.uploadFile(uploadDir, fileName, multipartFile.getInputStream());
+				//FileUploadUtil.saveImage(uploadDir, fileName, multipartFile);
 			} 
 			catch (IOException e) {
 				redirectAttributes.addFlashAttribute("message","User saved But error ocurred in Saving image");
@@ -163,7 +166,7 @@ public class UserController {
 		model.addAttribute("pageTitle","Edit User Id :" + id);
 		model.addAttribute("user",service.findById(id));
 		model.addAttribute("loggedRole",loggedRole);
-		return "/users/addNew";
+		return "users/addNew";
 	}
 	
 	@GetMapping("/users/export/csv")

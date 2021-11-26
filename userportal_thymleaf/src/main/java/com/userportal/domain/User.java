@@ -20,6 +20,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.userportal.util.S3Constant;
+
 @Entity
 public class User {
 	
@@ -228,7 +230,8 @@ public class User {
 			return "/images/default-user.png";
 		}
 		else {
-			return "/profile-image/" + this.id +"/" + this.profileImage;
+			return S3Constant.S3_BASE_URI +"/profile-image/" + this.id +"/" + this.profileImage;
+			//return "/profile-image/" + this.id +"/" + this.profileImage;
 		}
 	}
 	

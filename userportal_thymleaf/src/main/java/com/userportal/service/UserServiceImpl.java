@@ -107,7 +107,7 @@ public class UserServiceImpl {
 		if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserPrincipal) {
 			UserPrincipal temp = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 			
-			SecurityContextHolder.getContext().setAuthentication(null);
+			//SecurityContextHolder.getContext().setAuthentication(null);
 			loggedUser = repo.findById(temp.getId()).get();
 		}
 		else if (SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof LoginOAuth2User) {
